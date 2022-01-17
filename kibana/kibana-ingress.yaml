@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kibana
+  namespace: efk
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  # Use the host you used in your kubernetes Ingress Configurations
+  - host: my-kibana
+    http:
+      paths:
+      - backend:
+          serviceName: kibana-np
+          servicePort: 8080

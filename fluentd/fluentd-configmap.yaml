@@ -1,0 +1,63 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: fluentd-config
+  namespace: efk
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+data:
+  containers.input.conf: |-
+
+    <match fluent.**>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**fluentd**.log>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**kube-system**.log>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**kibana**.log>
+      @type null
+    </match>
+
+    <source>
+      @type tail
+      # path /var/log/containers/counter*.log
+      path /var/log/containers/*.log
+      pos_file /var/log/es-containers.log.pos
+      # time_format %Y-%m-%dT%H:%M:%S.%NZ
+      tag kubernetes.*
+      exclude_path ["/var/log/containers/fluentd-*.log", "/var/log/fluentd-*.pos", "/var/log/pods/efk/"]
+      read_from_head true
+      format multi_format
+      <pattern>
+        format json
+        time_key time
+        time_format %Y-%m-%dT%H:%M:%S.%NZ
+      </pattern>
+      <pattern>
+        format none
+        # format /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/
+        # time_format %Y-%m-%dT%H:%M:%S.%N%:z
+      </pattern>
+    </source>
+
+    <source>
+      @type tail
+      path /var/log/containers/*-db-*.log
+      pos_file /var/log/pgpool.log.pos
+      tag pgpool
+      read_from_head true
+      <parse>
+        @type json
+        time_format %Y-%m-%dT%H:%M:%S.%NZ
+      </parse>
+    </source>
+
+
+
+  
